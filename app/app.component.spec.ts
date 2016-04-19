@@ -1,6 +1,5 @@
 /* tslint:disable:no-unused-variable */
 import { AppComponent } from './app.component';
-
 import {
   expect, it, iit, xit,
   describe, ddescribe, xdescribe,
@@ -8,9 +7,10 @@ import {
   inject, injectAsync, fakeAsync, TestComponentBuilder, tick
 } from 'angular2/testing';
 
-import { provide }        from 'angular2/core';
-import { ViewMetadata }   from 'angular2/core';
+import { provide, ViewMetadata, ApplicationRef }   from 'angular2/core';
 import { PromiseWrapper } from 'angular2/src/facade/promise';
+import { ROUTER_PROVIDERS, APP_BASE_HREF, ROUTER_PRIMARY_COMPONENT  } from 'angular2/router';
+import { MockApplicationRef } from 'angular2/src/mock/mock_application_ref';
 
 /////////// Module Preparation ///////////////////////
 interface Done {
@@ -28,7 +28,24 @@ describe('Smoke test', () => {
 });
 
 
-describe('AppComponent', function () {
+describe('AppComponent', () => {
+
+  beforeEachProviders(() => [
+    ROUTER_PROVIDERS,
+    provide(APP_BASE_HREF, { useValue: '/' }),
+    provide(ROUTER_PRIMARY_COMPONENT, { useValue: AppComponent }),
+    provide(ApplicationRef, { useClass: MockApplicationRef }),
+  ]);
+
+  it('should be able to test',
+    injectAsync([TestComponentBuilder], (tcb: TestComponentBuilder) => {
+
+      return tcb.createAsync(AppComponent).then((fixture) => {
+        fixture.detectChanges();
+        expect(true).toBe(true);
+      });
+    }));
+
   it('should instantiate component',
     injectAsync([TestComponentBuilder], (tcb: TestComponentBuilder) => {
 
@@ -41,9 +58,9 @@ describe('AppComponent', function () {
     injectAsync([TestComponentBuilder], (tcb: TestComponentBuilder) => {
 
       return tcb.createAsync(AppComponent).then(fixture => {
-        // fixture.detectChanges();  // need for a binding; we don't have one
+        fixture.detectChanges();  // need for a binding; we don't have one
         let h1 = fixture.debugElement.query(el => el.name === 'h1').nativeElement;
-        expect(h1.innerText).toMatch(/angular 2 app/i, '<h1> should say something about "Angular 2 App"');
+        expect(h1.innerText).toMatch(/tour of heroes/i, '<h1> should say something about "Tour of Heroes"');
       });
     }));
 });
